@@ -69,27 +69,27 @@ async def ask_question(request: QuestionRequest):
         logger.error(f"Error processing question: {e}")
         raise HTTPException(status_code=500, detail=f"Error processing your question: {str(e)}")
 
-# Upload PDF endpoint
+# Upload document endpoint (supports PDF and TXT)
 @app.post("/upload", response_model=UploadResponse)
-async def upload_pdf(file: UploadFile = File(...)):
+async def upload_document(file: UploadFile = File(...)):
     try:
         # Validate file type
-        if not file.filename.lower().endswith('.pdf'):
+        if not file.filename.lower().endswith(('.pdf', '.txt')):
             return JSONResponse(
                 status_code=400,
-                content={"message": "Only PDF files are allowed", "success": False}
+                content={"message": "Only PDF and TXT files are allowed", "success": False}
             )
         
         # Read file content
         file_content = await file.read()
         
-        # Process the PDF
-        logger.info(f"Processing uploaded PDF: {file.filename}")
-        success = rag_engine.load_pdf_from_bytes(file_content, file.filename)
+        # Process the document
+        logger.info(f"Processing uploaded document: {file.filename}")
+        success = rag_engine.upload_document(file_content, file.filename)
         
         if success:
             return {
-                "message": f"Successfully processed {file.filename}",
+                "message": f"Successfully processed and added {file.filename} to knowledge base",
                 "success": True,
                 "filename": file.filename
             }

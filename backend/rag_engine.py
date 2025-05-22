@@ -1,7 +1,7 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import Chroma
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
@@ -27,8 +27,9 @@ if not google_api_key:
 llm = ChatGoogleGenerativeAI(model="models/gemini-1.5-flash", google_api_key=google_api_key)
 embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=google_api_key)
 
-# Default persist directory for ChromaDB
+# Default directories
 PERSIST_DIRECTORY = "./chroma_db"
+KNOWLEDGE_BASE_DIR = os.path.join(os.path.dirname(__file__), "knowledge_base")
 
 # Custom prompt template for better answers
 QA_PROMPT = """You are an AI assistant providing helpful, accurate, and concise answers based on the provided context.
@@ -88,13 +89,44 @@ class RAGEngine:
             chain_type_kwargs={"prompt": PROMPT}
         )
     
-    def load_pdf(self, pdf_path: str) -> bool:
-        """Load a PDF file and create/update the vector store."""
+    def _load_documents(self, file_path: str) -> list:
+        """Load documents from a file (PDF or TXT)."""
         try:
-            logger.info(f"Loading PDF from {pdf_path}")
-            # Load and process PDF
-            loader = PyPDFLoader(pdf_path)
-            pages = loader.load_and_split()
+            if file_path.lower().endswith('.pdf'):
+                loader = PyPDFLoader(file_path)
+                pages = loader.load_and_split()
+                logger.info(f"Loaded PDF: {file_path}")
+                return pages
+            elif file_path.lower().endswith('.txt'):
+                loader = TextLoader(file_path, encoding='utf-8')
+                pages = loader.load_and_split()
+                logger.info(f"Loaded TXT: {file_path}")
+                return pages
+            else:
+                logger.warning(f"Unsupported file format: {file_path}")
+                return []
+        except Exception as e:
+            logger.error(f"Error loading {file_path}: {e}")
+            return []
+
+    def load_documents(self, file_paths: list) -> bool:
+        """Load multiple files and create/update the vector store."""
+        try:
+            all_docs = []
+            
+            for file_path in file_paths:
+                if not os.path.exists(file_path):
+                    logger.warning(f"File not found: {file_path}")
+                    continue
+                    
+                # Load documents based on file type
+                docs = self._load_documents(file_path)
+                if docs:
+                    all_docs.extend(docs)
+            
+            if not all_docs:
+                logger.warning("No valid documents found in the provided files")
+                return False
             
             # Use recursive text splitter for better chunking
             text_splitter = RecursiveCharacterTextSplitter(
@@ -103,44 +135,65 @@ class RAGEngine:
                 length_function=len,
                 separators=["\n\n", "\n", " ", ""]
             )
-            docs = text_splitter.split_documents(pages)
             
-            if not docs:
-                logger.warning("No documents extracted from PDF")
-                return False
-            
-            logger.info(f"Extracted {len(docs)} document chunks from PDF")
+            chunks = text_splitter.split_documents(all_docs)
+            logger.info(f"Created {len(chunks)} document chunks from {len(all_docs)} documents")
             
             # Create or update vector store
             self.vectordb = Chroma.from_documents(
-                documents=docs, 
+                documents=chunks, 
                 embedding=embeddings, 
                 persist_directory=self.persist_directory
             )
-            # Note: persist() is no longer needed as Chroma 0.4.x+ automatically persists
             self.retriever = self.vectordb.as_retriever(search_kwargs={"k": 4})
             self._setup_qa_chain()
             return True
+            
         except Exception as e:
-            logger.error(f"Error loading PDF: {e}")
+            logger.error(f"Error loading documents: {e}")
             return False
+            
+    def load_knowledge_base(self) -> bool:
+        """Load all supported files from the knowledge base directory."""
+        if not os.path.exists(KNOWLEDGE_BASE_DIR):
+            logger.info(f"Knowledge base directory not found, creating: {KNOWLEDGE_BASE_DIR}")
+            os.makedirs(KNOWLEDGE_BASE_DIR, exist_ok=True)
+            return False
+            
+        # Get all PDF and TXT files from the knowledge base directory
+        supported_extensions = ('.pdf', '.txt')
+        file_paths = []
+        
+        for root, _, files in os.walk(KNOWLEDGE_BASE_DIR):
+            for file in files:
+                if file.lower().endswith(supported_extensions):
+                    file_paths.append(os.path.join(root, file))
+        
+        if not file_paths:
+            logger.warning(f"No supported files found in {KNOWLEDGE_BASE_DIR}")
+            return False
+            
+        logger.info(f"Found {len(file_paths)} supported files in knowledge base")
+        return self.load_documents(file_paths)
     
-    def load_pdf_from_bytes(self, pdf_bytes: bytes, filename: str = "uploaded_document.pdf") -> bool:
-        """Load a PDF from bytes (for file upload functionality)."""
+    def upload_document(self, file_bytes: bytes, filename: str) -> bool:
+        """Upload a document to the knowledge base and update the vector store."""
         try:
-            # Create a temporary file
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
-                temp_file.write(pdf_bytes)
-                temp_path = temp_file.name
+            # Ensure knowledge base directory exists
+            os.makedirs(KNOWLEDGE_BASE_DIR, exist_ok=True)
             
-            # Process the PDF
-            result = self.load_pdf(temp_path)
+            # Save the file to the knowledge base directory
+            file_path = os.path.join(KNOWLEDGE_BASE_DIR, filename)
+            with open(file_path, 'wb') as f:
+                f.write(file_bytes)
+                
+            logger.info(f"Saved uploaded file to {file_path}")
             
-            # Clean up
-            os.unlink(temp_path)
-            return result
+            # Reload the entire knowledge base with the new file
+            return self.load_knowledge_base()
+            
         except Exception as e:
-            logger.error(f"Error loading PDF from bytes: {e}")
+            logger.error(f"Error uploading document: {e}")
             return False
     
     def get_answer(self, query: str) -> Dict[str, Any]:
@@ -164,13 +217,11 @@ class RAGEngine:
                 "success": False
             }
 
-# Initialize the RAG engine with default PDF
+# Initialize the RAG engine
 rag_engine = RAGEngine()
 
-# Load the default knowledge base if it exists
-default_pdf_path = os.path.join(os.path.dirname(__file__), "knowledge_base.pdf")
-if os.path.exists(default_pdf_path):
-    rag_engine.load_pdf(default_pdf_path)
+# Load documents from the knowledge base directory
+rag_engine.load_knowledge_base()
 
 def get_answer(query: str) -> str:
     """Legacy function for backward compatibility."""
