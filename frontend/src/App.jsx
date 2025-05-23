@@ -33,13 +33,6 @@ const INITIAL_MESSAGE = {
   timestamp: new Date().toISOString(),
 };
 
-// Sample documents for the sidebar
-const sampleDocuments = [
-  { id: '1', name: 'Project_Requirements.pdf', type: 'pdf', size: '2.4 MB', uploaded: '2 hours ago' },
-  { id: '2', name: 'Technical_Documentation.txt', type: 'txt', size: '1.1 MB', uploaded: '1 day ago' },
-  { id: '3', name: 'Research_Paper.pdf', type: 'pdf', size: '3.7 MB', uploaded: '3 days ago' },
-];
-
 function App() {
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [input, setInput] = useState('');
@@ -54,6 +47,7 @@ function App() {
   const chatContainerRef = useRef(null);
   const fileInputRef = useRef(null);
   const inputRef = useRef(null);
+  const [documents, setDocuments] = useState([]);
 
   // Generate a unique ID for messages
   const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -94,6 +88,29 @@ function App() {
       inputRef.current.focus();
     }
   }, []);
+
+  // Fetch documents from backend
+  const fetchDocuments = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_URL}/documents`);
+      // Map backend data to expected format
+      const docs = (res.data.documents || []).map((doc, idx) => ({
+        id: doc.name, // Use filename as id
+        name: doc.name,
+        type: doc.name.split('.').pop().toLowerCase(),
+        size: (doc.size / (1024 * 1024)).toFixed(2) + ' MB',
+        uploaded: formatDistanceToNow(new Date(doc.last_modified), { addSuffix: true })
+      }));
+      setDocuments(docs);
+    } catch (err) {
+      setDocuments([]);
+    }
+  }, []);
+
+  // Fetch on mount
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
 
   // Handle sending a message
   const handleSendMessage = async (e) => {
@@ -188,21 +205,19 @@ function App() {
         },
       });
 
-      // Add document to the list
-      const newDocument = {
-        id: fileId,
-        name: file.name,
-        type: file.type.split('/').pop(),
-        size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
-        uploaded: 'Just now'
-      };
+      // Re-fetch document list after upload
+      await fetchDocuments();
 
       setUploadStatus({
         id: fileId,
         loading: false,
-        success: true,
         message: `Successfully uploaded ${file.name}`,
-        file: newDocument,
+        success: true,
+        file: {
+          name: file.name,
+          size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+          type: file.type.split('/').pop().toUpperCase()
+        },
         progress: 100
       });
 
@@ -211,7 +226,13 @@ function App() {
         setUploadStatus(null);
       }, 5000);
 
-      return newDocument;
+      return {
+        id: fileId,
+        name: file.name,
+        type: file.type.split('/').pop(),
+        size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+        uploaded: 'Just now'
+      };
     } catch (error) {
       console.error('Error uploading file:', error);
       setUploadStatus({
@@ -280,7 +301,7 @@ function App() {
       </div>
       
       <div className="space-y-2 mb-4">
-        {sampleDocuments.map((doc) => (
+        {documents.map((doc) => (
           <div
             key={doc.id}
             className={`document-preview flex items-center p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ${
@@ -428,16 +449,16 @@ function App() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message here..."
-                className="message-input pr-12"
+                className="w-full resize-none rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 pr-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:focus:border-blue-400 dark:focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
                 rows={1}
                 disabled={isLoading}
               />
-              <div className="absolute right-2 bottom-2 flex space-x-1">
+              <div className="absolute right-2 bottom-2 flex items-center space-x-2">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading || isUploading}
-                  className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   title="Attach file"
                 >
                   <FiPaperclip className="w-5 h-5" />
@@ -445,11 +466,11 @@ function App() {
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className={`p-1.5 rounded-full ${
+                  className={`p-2 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${
                     !input.trim() || isLoading
-                      ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                      : 'text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700'
-                  } transition-colors`}
+                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white'
+                  }`}
                   title="Send message"
                 >
                   <FiSend className="w-5 h-5" />

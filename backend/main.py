@@ -11,6 +11,7 @@ import uvicorn
 from typing import Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -38,6 +39,7 @@ app.add_middleware(
 # Pydantic models for request/response validation
 class QuestionRequest(BaseModel):
     question: str
+    document_id: Optional[str] = None
 
 class AnswerResponse(BaseModel):
     response: str
@@ -62,8 +64,8 @@ def health_check():
 @app.post("/ask", response_model=AnswerResponse)
 async def ask_question(request: QuestionRequest):
     try:
-        logger.info(f"Received question: {request.question}")
-        result = rag_engine.get_answer(request.question)
+        logger.info(f"Received question: {request.question} for document: {request.document_id}")
+        result = rag_engine.get_answer(request.question, document_id=request.document_id)
         return {"response": result["answer"], "success": result["success"]}
     except Exception as e:
         logger.error(f"Error processing question: {e}")
@@ -108,6 +110,24 @@ async def upload_document(file: UploadFile = File(...)):
             status_code=500,
             content={"message": f"Error uploading file: {str(e)}", "success": False}
         )
+
+# List documents endpoint
+@app.get("/documents")
+def list_documents():
+    knowledge_base_dir = os.path.join(os.path.dirname(__file__), "knowledge_base")
+    if not os.path.exists(knowledge_base_dir):
+        return {"documents": []}
+    docs = []
+    for fname in os.listdir(knowledge_base_dir):
+        if fname.lower().endswith((".pdf", ".txt")):
+            fpath = os.path.join(knowledge_base_dir, fname)
+            stat = os.stat(fpath)
+            docs.append({
+                "name": fname,
+                "size": stat.st_size,
+                "last_modified": datetime.fromtimestamp(stat.st_mtime).isoformat()
+            })
+    return {"documents": docs}
 
 # Custom OpenAPI schema
 def custom_openapi():

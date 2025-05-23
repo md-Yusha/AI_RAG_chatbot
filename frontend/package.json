@@ -13,6 +13,7 @@
     "tailwind:watch": "tailwindcss -i ./src/index.css -o ./dist/output.css --watch"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.1.1",
     "@tailwindcss/aspect-ratio": "^0.4.2",
@@ -33,6 +34,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@emotion/babel-plugin": "^11.13.5",
     "@types/node": "^20.10.5",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",

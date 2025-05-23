@@ -11,6 +11,7 @@ from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 import tempfile
 from pathlib import Path
+from langchain.docstore.document import Document
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -113,33 +114,33 @@ class RAGEngine:
         """Load multiple files and create/update the vector store."""
         try:
             all_docs = []
-            
             for file_path in file_paths:
                 if not os.path.exists(file_path):
                     logger.warning(f"File not found: {file_path}")
                     continue
-                    
-                # Load documents based on file type
                 docs = self._load_documents(file_path)
+                # Attach source filename as metadata
+                for doc in docs:
+                    doc.metadata = doc.metadata or {}
+                    doc.metadata["source"] = os.path.basename(file_path)
                 if docs:
                     all_docs.extend(docs)
-            
             if not all_docs:
                 logger.warning("No valid documents found in the provided files")
                 return False
-            
-            # Use recursive text splitter for better chunking
             text_splitter = RecursiveCharacterTextSplitter(
                 chunk_size=1000,
                 chunk_overlap=200,
                 length_function=len,
                 separators=["\n\n", "\n", " ", ""]
             )
-            
             chunks = text_splitter.split_documents(all_docs)
+            # Ensure metadata is preserved for each chunk
+            for chunk, doc in zip(chunks, all_docs):
+                chunk.metadata = chunk.metadata or {}
+                if "source" in doc.metadata:
+                    chunk.metadata["source"] = doc.metadata["source"]
             logger.info(f"Created {len(chunks)} document chunks from {len(all_docs)} documents")
-            
-            # Create or update vector store
             self.vectordb = Chroma.from_documents(
                 documents=chunks, 
                 embedding=embeddings, 
@@ -148,7 +149,6 @@ class RAGEngine:
             self.retriever = self.vectordb.as_retriever(search_kwargs={"k": 4})
             self._setup_qa_chain()
             return True
-            
         except Exception as e:
             logger.error(f"Error loading documents: {e}")
             return False
@@ -196,26 +196,28 @@ class RAGEngine:
             logger.error(f"Error uploading document: {e}")
             return False
     
-    def get_answer(self, query: str) -> Dict[str, Any]:
-        """Get an answer for a query using the RAG pipeline."""
-        if not self.qa_chain:
+    def get_answer(self, query: str, document_id: Optional[str] = None) -> Dict[str, Any]:
+        """Get an answer for a query using the RAG pipeline, optionally filtering by document."""
+        if not self.vectordb:
             return {
                 "answer": "The knowledge base has not been loaded yet. Please upload a document first.",
                 "success": False
             }
-        
         try:
-            answer = self.qa_chain.run(query)
-            return {
-                "answer": answer,
-                "success": True
-            }
+            if document_id:
+                # Filter retriever to only use chunks from the selected document
+                docs = self.vectordb.similarity_search(query, k=8, filter={"source": document_id})
+                if not docs:
+                    return {"answer": "No relevant content found in the selected document.", "success": False}
+                context = "\n".join([doc.page_content for doc in docs])
+                answer = llm.invoke(f"Context:\n{context}\n\nQuestion:\n{query}")
+                return {"answer": answer.content if hasattr(answer, 'content') else str(answer), "success": True}
+            else:
+                answer = self.qa_chain.run(query)
+                return {"answer": answer, "success": True}
         except Exception as e:
             logger.error(f"Error getting answer: {e}")
-            return {
-                "answer": f"An error occurred while processing your query: {str(e)}",
-                "success": False
-            }
+            return {"answer": f"An error occurred while processing your query: {str(e)}", "success": False}
 
 # Initialize the RAG engine
 rag_engine = RAGEngine()

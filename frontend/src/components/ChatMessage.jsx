@@ -7,59 +7,44 @@ const ChatMessage = ({ message }) => {
   const { role, content } = message;
 
   const getMessageStyles = () => {
-    const baseStyles = 'rounded-2xl p-4 max-w-[85%] shadow-md transition-all duration-200';
-    
+    const baseStyles = 'rounded-2xl p-4 max-w-[75%] shadow-lg transition-all duration-200 text-base';
     switch (role) {
       case 'user':
         return {
-          container: `${baseStyles} bg-blue-600 text-white ml-auto rounded-br-none`,
-          content: 'text-white',
-          icon: <FiUser className="w-4 h-4" />
+          container: `${baseStyles} bg-blue-600 text-white ml-auto rounded-br-md border border-blue-200`,
+          label: 'text-xs font-semibold text-blue-100 mb-1 text-right',
         };
       case 'assistant':
         return {
-          container: `${baseStyles} bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 mr-auto rounded-bl-none`,
-          content: 'text-gray-800 dark:text-gray-100',
-          icon: <FiMessageSquare className="w-4 h-4 text-blue-500" />
+          container: `${baseStyles} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 mr-auto rounded-bl-md border border-gray-200 dark:border-gray-700`,
+          label: 'text-xs font-semibold text-blue-500 dark:text-blue-300 mb-1',
         };
       case 'system':
         return {
-          container: `${baseStyles} bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 mx-auto max-w-3xl`,
-          content: 'text-center italic',
-          icon: <FiAlertCircle className="w-4 h-4 text-amber-500" />
+          container: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 mx-auto max-w-xl text-center italic py-2 px-4 my-4 rounded-lg',
+          label: '',
         };
       default:
         return {
-          container: `${baseStyles} bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100`,
-          content: ''
+          container: `${baseStyles} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`,
+          label: '',
         };
     }
   };
 
   const styles = getMessageStyles();
   const isUser = role === 'user';
+  const isAssistant = role === 'assistant';
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 px-4`}>
-      {!isUser && role !== 'system' && (
-        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mr-2 mt-1">
-          {styles.icon}
-        </div>
-      )}
-      
+    <div className={`flex ${isUser ? 'justify-end' : isAssistant ? 'justify-start' : 'justify-center'} mb-6 px-2`}>  
       <div className={styles.container}>
         {role !== 'system' && (
-          <div className="flex items-center mb-1">
-            <div className="flex-shrink-0 mr-2">
-              {styles.icon}
-            </div>
-            <span className="text-xs font-medium opacity-80">
-              {role === 'user' ? 'You' : 'Assistant'}
-            </span>
+          <div className={styles.label}>
+            {role === 'user' ? 'You' : 'Assistant'}
           </div>
         )}
-        
-        <div className={styles.content}>
+        <div>
           <ReactMarkdown
             className="prose dark:prose-invert prose-sm max-w-none"
             components={{
@@ -133,12 +118,6 @@ const ChatMessage = ({ message }) => {
           </ReactMarkdown>
         </div>
       </div>
-      
-      {isUser && (
-        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center ml-2 mt-1">
-          {styles.icon}
-        </div>
-      )}
     </div>
   );
 };
