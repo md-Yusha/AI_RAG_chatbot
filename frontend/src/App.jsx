@@ -16,14 +16,11 @@ import {
   FiUpload,
   FiFile,
   FiAlertTriangle,
-  FiInfo,
-  FiFolder
+  FiInfo
 } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 import ChatMessage from './components/ChatMessage';
 import FileUpload from './components/FileUpload';
-import WelcomePopup from './components/WelcomePopup';
-import { motion } from 'framer-motion';
 
 // API base URL
 const API_URL = 'http://localhost:8000';
@@ -46,27 +43,11 @@ function App() {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [activeDocument, setActiveDocument] = useState(null);
   const [showDocuments, setShowDocuments] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(true);
-  const [companyInfo, setCompanyInfo] = useState(null);
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
   const fileInputRef = useRef(null);
   const inputRef = useRef(null);
   const [documents, setDocuments] = useState([]);
-
-  // Load company info from localStorage on mount
-  useEffect(() => {
-    const savedCompanyInfo = localStorage.getItem('companyInfo');
-    if (savedCompanyInfo) {
-      setCompanyInfo(JSON.parse(savedCompanyInfo));
-      setShowWelcome(false);
-    }
-  }, []);
-
-  const handleWelcomeComplete = (info) => {
-    setCompanyInfo(info);
-    setShowWelcome(false);
-  };
 
   // Generate a unique ID for messages
   const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -276,6 +257,18 @@ function App() {
   const handleDocumentSelect = (doc) => {
     setActiveDocument(doc);
     setShowDocuments(false);
+    
+    // Add a system message when a document is selected
+    setMessages(prev => [
+      ...prev,
+      {
+        id: generateId(),
+        role: 'system',
+        content: `Now chatting with ${doc.name}`,
+        timestamp: new Date().toISOString(),
+        isSystem: true
+      }
+    ]);
   };
 
   // Handle clearing the chat
@@ -293,53 +286,86 @@ function App() {
     }
   };
 
+  // Render the document list
   const renderDocumentList = () => (
-    <motion.div
-      initial={false}
-      animate={{ width: showDocuments ? '300px' : '0px' }}
-      className="bg-white border-r border-gray-200 overflow-hidden"
-    >
-      <div className="p-4">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Documents</h2>
-        <div className="space-y-2">
-          {documents.map((doc) => (
-            <button
-              key={doc.id}
-              onClick={() => handleDocumentSelect(doc)}
-              className={`w-full text-left p-3 rounded-lg transition-colors ${
-                activeDocument?.id === doc.id
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <FiFileText className="w-5 h-5" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{doc.name}</p>
-                  <p className="text-xs text-gray-500">{doc.size} • {doc.uploaded}</p>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
+    <div className="document-list">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Your Documents</h3>
+        <button
+          onClick={() => setShowDocuments(false)}
+          className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+          aria-label="Hide documents"
+        >
+          <FiX className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+        </button>
       </div>
-    </motion.div>
+      
+      <div className="space-y-2 mb-4">
+        {documents.map((doc) => (
+          <div
+            key={doc.id}
+            className={`document-preview flex items-center p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ${
+              activeDocument?.id === doc.id ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800' : ''
+            }`}
+            onClick={() => handleDocumentSelect(doc)}
+          >
+            <div className="document-preview-icon mr-3">
+              <FiFileText className="w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                {doc.name}
+              </p>
+              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-xs font-medium text-gray-800 dark:text-gray-200 mr-2">
+                  {doc.type.toUpperCase()}
+                </span>
+                <span>{doc.size}</span>
+                <span className="mx-1">•</span>
+                <span>{doc.uploaded}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <FileUpload onFileUpload={handleFileUpload} isUploading={isUploading} />
+    </div>
   );
 
   // Render the chat interface
   const renderChatInterface = () => (
     <div className="flex flex-col h-full">
       {/* Chat header */}
-      <div className="bg-slate-900 border-b border-gray-800 p-6 flex items-center justify-between shadow-sm">
-        <h2 className="text-2xl font-extrabold text-white text-center w-full">
-          {companyInfo ? `${companyInfo.name} Assistant` : 'Assistant'}
-        </h2>
-        <button
-          onClick={() => setShowDocuments(!showDocuments)}
-          className="ml-4 px-4 py-2 bg-white text-slate-900 font-semibold rounded-lg shadow hover:bg-gray-100 transition-colors"
-        >
-          Documents
-        </button>
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <button
+            onClick={() => setShowDocuments(true)}
+            className="md:hidden mr-2 p-1 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            aria-label="Show documents"
+          >
+            <FiMenu className="w-5 h-5" />
+          </button>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {activeDocument ? activeDocument.name : 'New Chat'}
+          </h2>
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleClearChat}
+            className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+            title="New chat"
+          >
+            <FiMessageSquare className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setShowDocuments(!showDocuments)}
+            className="hidden md:flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          >
+            <FiFileText className="w-4 h-4" />
+            <span>Documents</span>
+          </button>
+        </div>
       </div>
       
       {/* Messages container */}
@@ -486,14 +512,29 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {showWelcome && <WelcomePopup onComplete={handleWelcomeComplete} />}
-      <div className="flex-1 flex overflow-hidden">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      {/* Sidebar - Desktop */}
+      <div className={`hidden md:flex md:flex-shrink-0 w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col h-full ${showDocuments ? 'flex' : 'hidden'}`}>
         {renderDocumentList()}
-        <div className="flex-1 flex flex-col">
-          {renderChatInterface()}
-        </div>
       </div>
+      
+      {/* Main content */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {renderChatInterface()}
+      </div>
+      
+      {/* Mobile sidebar overlay */}
+      {showDocuments && (
+        <div className="md:hidden fixed inset-0 z-40">
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            onClick={() => setShowDocuments(false)}
+          />
+          <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-white dark:bg-gray-800 shadow-xl z-50 p-4 overflow-y-auto">
+            {renderDocumentList()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
