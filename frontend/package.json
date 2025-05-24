@@ -13,6 +13,8 @@
     "tailwind:watch": "tailwindcss -i ./src/index.css -o ./dist/output.css --watch"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.31.6",
+    "@clerk/themes": "^2.2.46",
     "@emotion/react": "^11.14.0",
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.1.1",
