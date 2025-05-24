@@ -1,33 +1,90 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'prism-react-renderer';
-import { FiUser, FiMessageSquare, FiAlertCircle } from 'react-icons/fi';
+import { FiUser, FiMessageSquare, FiAlertCircle, FiInfo } from 'react-icons/fi';
+
+// Default theme for code blocks
+const defaultTheme = {
+  plain: {
+    color: '#1F2937',
+    backgroundColor: '#F9FAFB',
+  },
+  styles: [
+    {
+      types: ['comment', 'prolog', 'doctype', 'cdata'],
+      style: {
+        color: '#6B7280',
+        fontStyle: 'italic',
+      },
+    },
+    {
+      types: ['punctuation'],
+      style: {
+        color: '#6B7280',
+      },
+    },
+    {
+      types: ['property', 'tag', 'boolean', 'number', 'constant', 'symbol', 'deleted'],
+      style: {
+        color: '#8B5CF6',
+      },
+    },
+    {
+      types: ['selector', 'attr-name', 'string', 'char', 'builtin', 'inserted'],
+      style: {
+        color: '#059669',
+      },
+    },
+    {
+      types: ['operator', 'entity', 'url', 'variable'],
+      style: {
+        color: '#D97706',
+      },
+    },
+    {
+      types: ['atrule', 'attr-value', 'keyword'],
+      style: {
+        color: '#2563EB',
+      },
+    },
+    {
+      types: ['function', 'class-name'],
+      style: {
+        color: '#DC2626',
+      },
+    },
+  ],
+};
 
 const ChatMessage = ({ message }) => {
   const { role, content } = message;
 
   const getMessageStyles = () => {
-    const baseStyles = 'rounded-2xl p-4 max-w-[75%] shadow-lg transition-all duration-200 text-base';
+    const baseStyles = 'p-4 max-w-[80%] text-base transition-all duration-200';
     switch (role) {
       case 'user':
         return {
-          container: `${baseStyles} bg-blue-600 text-white ml-auto rounded-br-md border border-blue-200`,
-          label: 'text-xs font-semibold text-blue-100 mb-1 text-right',
+          container: `${baseStyles} bg-blue-50 text-gray-800 ml-auto rounded-r-lg rounded-tl-lg border-l-4 border-blue-400 shadow-sm hover:shadow-md`,
+          label: 'text-xs font-medium text-blue-600 mb-1 text-right',
+          icon: <FiUser className="text-blue-500" />
         };
       case 'assistant':
         return {
-          container: `${baseStyles} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 mr-auto rounded-bl-md border border-gray-200 dark:border-gray-700`,
-          label: 'text-xs font-semibold text-blue-500 dark:text-blue-300 mb-1',
+          container: `${baseStyles} bg-white text-gray-800 mr-auto rounded-l-lg rounded-tr-lg border-l-4 border-gray-300 shadow-sm hover:shadow-md`,
+          label: 'text-xs font-medium text-gray-600 mb-1',
+          icon: <FiMessageSquare className="text-gray-500" />
         };
       case 'system':
         return {
-          container: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 mx-auto max-w-xl text-center italic py-2 px-4 my-4 rounded-lg',
+          container: 'bg-amber-50 text-amber-800 mx-auto max-w-xl text-center py-2 px-4 my-4 rounded-lg border-l-4 border-amber-400',
           label: '',
+          icon: <FiInfo className="text-amber-500" />
         };
       default:
         return {
-          container: `${baseStyles} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100`,
-          label: '',
+          container: `${baseStyles} bg-white text-gray-800 border-l-4 border-gray-200`,
+          label: 'text-xs font-medium text-gray-500',
+          icon: <FiMessageSquare className="text-gray-400" />
         };
     }
   };
@@ -37,67 +94,62 @@ const ChatMessage = ({ message }) => {
   const isAssistant = role === 'assistant';
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : isAssistant ? 'justify-start' : 'justify-center'} mb-6 px-2`}>  
-      <div className={styles.container}>
-        {role !== 'system' && (
-          <div className={styles.label}>
-            {role === 'user' ? 'You' : 'Assistant'}
+    <div className={`mb-4 flex ${role === 'user' ? 'justify-end' : 'justify-start'}`}>
+      <div className="flex flex-col max-w-[90%] w-full">
+        <div className="flex items-center mb-1">
+          <div className="mr-2">
+            {styles.icon}
           </div>
-        )}
-        <div>
+          {styles.label && (
+            <div className={styles.label}>
+              {role === 'user' ? 'You' : role === 'assistant' ? 'Assistant' : 'System'}
+            </div>
+          )}
+        </div>
+        <div className={styles.container}>
           <ReactMarkdown
-            className="prose dark:prose-invert prose-sm max-w-none"
             components={{
-              // Code blocks with syntax highlighting
-              code({node, inline, className, children, ...props}) {
+              code({ node, inline, className, children, ...props }) {
                 const match = /language-(\w+)/.exec(className || '');
-                
-                return !inline && match ? (
-                  <div className="rounded-lg overflow-hidden my-2">
-                    <div className="bg-gray-100 dark:bg-gray-800 px-4 py-1 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                      {match[1]}
+                return !inline ? (
+                  <div className="rounded-lg overflow-hidden my-2 border border-gray-200">
+                    <div className="bg-gray-100 px-3 py-1 text-xs text-gray-600 border-b border-gray-200">
+                      {match?.[1] || 'code'}
                     </div>
                     <SyntaxHighlighter
-                      language={match[1]}
-                      style={null}
+                      style={defaultTheme}
+                      language={match?.[1]}
+                      PreTag="div"
+                      className="!m-0 !p-4 overflow-auto !bg-gray-50"
                       customStyle={{
                         margin: 0,
-                        padding: '1rem',
                         fontSize: '0.875rem',
                         lineHeight: '1.5',
-                        backgroundColor: 'rgb(243, 244, 246)',
-                        color: 'rgb(17, 24, 39)'
                       }}
-                      className="dark:!bg-gray-900"
+                      {...props}
                     >
                       {String(children).replace(/\n$/, '')}
                     </SyntaxHighlighter>
                   </div>
                 ) : (
-                  <code className="bg-gray-100 dark:bg-gray-700 rounded px-1.5 py-0.5 text-sm font-mono">
+                  <code className="bg-gray-100 text-pink-600 px-1.5 py-0.5 rounded text-sm font-mono">
                     {children}
                   </code>
                 );
               },
-              // Links
-              a: ({node, ...props}) => (
+              a: ({ node, ...props }) => (
                 <a
-                  className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 underline"
+                  {...props}
+                  className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                   target="_blank"
                   rel="noopener noreferrer"
-                  {...props}
                 />
               ),
-              // Blockquotes
-              blockquote: ({node, ...props}) => (
-                <blockquote 
-                  className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic my-2 text-gray-600 dark:text-gray-300"
-                  {...props}
-                />
+              p: ({ node, ...props }) => (
+                <p {...props} className="mb-4 last:mb-0 leading-relaxed" />
               ),
-              // Lists
-              ul: ({node, ...props}) => (
-                <ul className="list-disc pl-5 space-y-1 my-2" {...props} />
+              ul: ({ node, ...props }) => (
+                <ul {...props} className="list-disc pl-5 space-y-1 my-2" />
               ),
               ol: ({node, ...props}) => (
                 <ol className="list-decimal pl-5 space-y-1 my-2" {...props} />
