@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { 
-  FiSend, 
-  FiPaperclip, 
-  FiX, 
-  FiLoader, 
-  FiCheck, 
-  FiAlertCircle, 
-  FiMenu, 
+import {
+  FiSend,
+  FiPaperclip,
+  FiX,
+  FiLoader,
+  FiCheck,
+  FiAlertCircle,
+  FiMenu,
   FiMessageSquare,
   FiFileText,
   FiSettings,
@@ -16,7 +16,7 @@ import {
   FiUpload,
   FiFile,
   FiAlertTriangle,
-  FiInfo
+  FiInfo,
 } from 'react-icons/fi';
 import { formatDistanceToNow } from 'date-fns';
 import ChatMessage from './components/ChatMessage';
@@ -29,7 +29,8 @@ const API_URL = 'http://localhost:8000';
 const INITIAL_MESSAGE = {
   id: 'welcome',
   role: 'assistant',
-  content: "Hello! I'm your document assistant. You can upload PDF or TXT files and ask me questions about their content. I'll help you find information and answer your questions based on the documents you provide.",
+  content:
+    "Hello! I'm your document assistant. You can upload PDF or TXT files and ask me questions about their content. I'll help you find information and answer your questions based on the documents you provide.",
   timestamp: new Date().toISOString(),
 };
 
@@ -99,7 +100,7 @@ function App() {
         name: doc.name,
         type: doc.name.split('.').pop().toLowerCase(),
         size: (doc.size / (1024 * 1024)).toFixed(2) + ' MB',
-        uploaded: formatDistanceToNow(new Date(doc.last_modified), { addSuffix: true })
+        uploaded: formatDistanceToNow(new Date(doc.last_modified), { addSuffix: true }),
       }));
       setDocuments(docs);
     } catch (err) {
@@ -113,21 +114,21 @@ function App() {
   }, [fetchDocuments]);
 
   // Handle sending a message
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = async e => {
     e.preventDefault();
-    
+
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) return;
 
     // Add user message to chat
-    const userMessage = { 
+    const userMessage = {
       id: generateId(),
-      role: 'user', 
+      role: 'user',
       content: trimmedInput,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
-    
-    setMessages((prev) => [...prev, userMessage]);
+
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
@@ -135,30 +136,30 @@ function App() {
       // Send request to backend
       const response = await axios.post(`${API_URL}/ask`, {
         question: userMessage.content,
-        document_id: activeDocument?.id
+        document_id: activeDocument?.id,
       });
 
       // Add assistant response to chat
-      setMessages((prev) => [
+      setMessages(prev => [
         ...prev,
         {
           id: generateId(),
           role: 'assistant',
           content: response.data.response,
           timestamp: new Date().toISOString(),
-          sources: response.data.sources || []
+          sources: response.data.sources || [],
         },
       ]);
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessages((prev) => [
+      setMessages(prev => [
         ...prev,
         {
           id: generateId(),
           role: 'assistant',
           content: 'Sorry, I encountered an error processing your request. Please try again later.',
           isError: true,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         },
       ]);
     } finally {
@@ -167,9 +168,9 @@ function App() {
   };
 
   // Handle file upload
-  const handleFileUpload = async (file) => {
+  const handleFileUpload = async file => {
     const fileId = generateId();
-    
+
     setUploadStatus({
       id: fileId,
       loading: true,
@@ -178,11 +179,11 @@ function App() {
       file: {
         name: file.name,
         size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
-        type: file.type.split('/').pop().toUpperCase()
+        type: file.type.split('/').pop().toUpperCase(),
       },
-      progress: 0
+      progress: 0,
     });
-    
+
     setIsUploading(true);
 
     const formData = new FormData();
@@ -193,14 +194,12 @@ function App() {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        onUploadProgress: (progressEvent) => {
-          const progress = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total || 1)
-          );
+        onUploadProgress: progressEvent => {
+          const progress = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
           setUploadStatus(prev => ({
             ...prev,
             progress,
-            message: `Uploading ${file.name}... ${progress}%`
+            message: `Uploading ${file.name}... ${progress}%`,
           }));
         },
       });
@@ -216,9 +215,9 @@ function App() {
         file: {
           name: file.name,
           size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
-          type: file.type.split('/').pop().toUpperCase()
+          type: file.type.split('/').pop().toUpperCase(),
         },
-        progress: 100
+        progress: 100,
       });
 
       // Auto-dismiss success message after 5 seconds
@@ -231,7 +230,7 @@ function App() {
         name: file.name,
         type: file.type.split('/').pop(),
         size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
-        uploaded: 'Just now'
+        uploaded: 'Just now',
       };
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -243,9 +242,9 @@ function App() {
         file: {
           name: file.name,
           size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
-          type: file.type.split('/').pop().toUpperCase()
+          type: file.type.split('/').pop().toUpperCase(),
         },
-        progress: 0
+        progress: 0,
       });
       throw error;
     } finally {
@@ -254,10 +253,10 @@ function App() {
   };
 
   // Handle document selection
-  const handleDocumentSelect = (doc) => {
+  const handleDocumentSelect = doc => {
     setActiveDocument(doc);
     setShowDocuments(false);
-    
+
     // Add a system message when a document is selected
     setMessages(prev => [
       ...prev,
@@ -266,8 +265,8 @@ function App() {
         role: 'system',
         content: `Now chatting with ${doc.name}`,
         timestamp: new Date().toISOString(),
-        isSystem: true
-      }
+        isSystem: true,
+      },
     ]);
   };
 
@@ -279,7 +278,7 @@ function App() {
   };
 
   // Handle keyboard shortcuts
-  const handleKeyDown = (e) => {
+  const handleKeyDown = e => {
     // Send message on Cmd+Enter or Ctrl+Enter
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       handleSendMessage(e);
@@ -302,14 +301,14 @@ function App() {
           <FiX className="w-4 h-4 text-gray-500 dark:text-gray-300" />
         </button>
       </div>
-      
+
       <div className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto pr-1">
-        {documents.map((doc) => (
+        {documents.map(doc => (
           <div
             key={doc.id}
             className={`document-preview flex items-center p-3 cursor-pointer rounded-lg transition-all duration-200 ${
-              activeDocument?.id === doc.id 
-                ? 'bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-400 dark:border-blue-500 shadow-sm' 
+              activeDocument?.id === doc.id
+                ? 'bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-400 dark:border-blue-500 shadow-sm'
                 : 'hover:bg-gray-50 dark:hover:bg-gray-800 border-l-4 border-transparent'
             }`}
             onClick={() => handleDocumentSelect(doc)}
@@ -333,7 +332,7 @@ function App() {
           </div>
         ))}
       </div>
-      
+
       <FileUpload onFileUpload={handleFileUpload} isUploading={isUploading} />
     </div>
   );
@@ -372,19 +371,16 @@ function App() {
           </button>
         </div>
       </div>
-      
+
       {/* Messages container */}
-      <div 
+      <div
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto p-4 bg-blue-50 dark:bg-gray-950"
       >
         <div className="max-w-3xl mx-auto w-full space-y-4">
           {messages.map((message, index) => (
             <div key={`${message.id || index}`} className="message-container">
-              <ChatMessage 
-                message={message} 
-                isLast={index === messages.length - 1}
-              />
+              <ChatMessage message={message} isLast={index === messages.length - 1} />
             </div>
           ))}
           {isLoading && (
@@ -400,18 +396,20 @@ function App() {
           <div ref={messagesEndRef} />
         </div>
       </div>
-      
+
       {/* Input area */}
       <div className="border-t border-blue-200 dark:border-gray-800 bg-blue-100 dark:bg-gray-900 p-4 shadow-inner">
         <div className="max-w-3xl mx-auto">
           {uploadStatus && (
-            <div className={`mb-4 p-3 rounded-lg ${
-              uploadStatus.success === true 
-                ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800' 
-                : uploadStatus.success === false 
-                  ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800' 
-                  : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800'
-            }`}>
+            <div
+              className={`mb-4 p-3 rounded-lg ${
+                uploadStatus.success === true
+                  ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800'
+                  : uploadStatus.success === false
+                    ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800'
+                    : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800'
+              }`}
+            >
               <div className="flex items-start">
                 <div className="flex-shrink-0 pt-0.5">
                   {uploadStatus.loading ? (
@@ -423,13 +421,11 @@ function App() {
                   )}
                 </div>
                 <div className="ml-3 flex-1">
-                  <p className="text-sm font-medium">
-                    {uploadStatus.message}
-                  </p>
+                  <p className="text-sm font-medium">{uploadStatus.message}</p>
                   {uploadStatus.progress > 0 && uploadStatus.progress < 100 && (
                     <div className="mt-1 w-full bg-gray-200 dark:bg-gray-800 rounded-full h-1.5">
-                      <div 
-                        className="bg-teal-400 dark:bg-teal-700 h-1.5 rounded-full transition-all duration-300 ease-out" 
+                      <div
+                        className="bg-teal-400 dark:bg-teal-700 h-1.5 rounded-full transition-all duration-300 ease-out"
                         style={{ width: `${uploadStatus.progress}%` }}
                       />
                     </div>
@@ -451,10 +447,10 @@ function App() {
               <textarea
                 ref={inputRef}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message here..."
-                className="w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-2 pr-12 focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
+                className="w-full resize-none rounded-lg border text-black border-gray-300 bg-white px-4 py-2 pr-12 focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
                 rows={1}
                 disabled={isLoading}
               />
@@ -489,7 +485,7 @@ function App() {
             <input
               type="file"
               ref={fileInputRef}
-              onChange={(e) => {
+              onChange={e => {
                 if (e.target.files?.[0]) {
                   handleFileUpload(e.target.files[0]);
                   e.target.value = ''; // Reset the input
@@ -502,7 +498,7 @@ function App() {
           </form>
         </div>
       </div>
-      
+
       {/* Scroll to bottom button */}
       {showScrollButton && (
         <button
@@ -525,19 +521,21 @@ function App() {
         </div>
       </div>
       {/* Sidebar - Desktop */}
-      <div className={`hidden md:flex md:flex-shrink-0 w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col h-full ${showDocuments ? 'flex' : 'hidden'}`}>
+      <div
+        className={`hidden md:flex md:flex-shrink-0 w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col h-full ${showDocuments ? 'flex' : 'hidden'}`}
+      >
         {renderDocumentList()}
       </div>
-      
+
       {/* Main content */}
       <div className="flex-1 flex flex-col h-full overflow-hidden pt-12">
         {renderChatInterface()}
       </div>
-      
+
       {/* Mobile sidebar overlay */}
       {showDocuments && (
         <div className="md:hidden fixed inset-0 z-40">
-          <div 
+          <div
             className="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-black dark:bg-opacity-70 transition-opacity"
             onClick={() => setShowDocuments(false)}
           />
