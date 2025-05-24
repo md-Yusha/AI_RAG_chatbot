@@ -37,7 +37,8 @@ const INITIAL_MESSAGE = {
 };
 
 function ChatInterface() {
-  const { user, signOut } = useUser();
+  const { user } = useUser();
+  const { signOut } = useAuth();
   const companyName = user?.publicMetadata?.companyName || user?.firstName || 'Your';
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [input, setInput] = useState('');
@@ -55,8 +56,12 @@ function ChatInterface() {
   const [documents, setDocuments] = useState([]);
   
   const handleSignOut = async () => {
-    await signOut();
-    window.location.href = '/sign-in';
+    try {
+      await signOut();
+      window.location.href = '/sign-in';
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   // Generate a unique ID for messages
