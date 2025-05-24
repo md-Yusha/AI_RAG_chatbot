@@ -288,29 +288,24 @@ function App() {
 
   // Render the document list
   const renderDocumentList = () => (
-    <div className="document-list bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
-        <h3 className="text-base font-semibold text-gray-800 flex items-center">
-          <FiFileText className="mr-2 text-blue-500" />
-          Your Documents
-        </h3>
+    <div className="document-list">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Your Documents</h3>
         <button
           onClick={() => setShowDocuments(false)}
-          className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+          className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
           aria-label="Hide documents"
         >
-          <FiX className="w-4 h-4 text-gray-500" />
+          <FiX className="w-5 h-5 text-gray-500 dark:text-gray-400" />
         </button>
       </div>
       
-      <div className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto pr-1">
+      <div className="space-y-2 mb-4">
         {documents.map((doc) => (
           <div
             key={doc.id}
-            className={`document-preview flex items-center p-3 cursor-pointer rounded-lg transition-all duration-200 ${
-              activeDocument?.id === doc.id 
-                ? 'bg-blue-50 border-l-4 border-blue-400 shadow-sm' 
-                : 'hover:bg-gray-50 border-l-4 border-transparent'
+            className={`document-preview flex items-center p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ${
+              activeDocument?.id === doc.id ? 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800' : ''
             }`}
             onClick={() => handleDocumentSelect(doc)}
           >
@@ -351,7 +346,7 @@ function App() {
           >
             <FiMenu className="w-5 h-5" />
           </button>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-black">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             {activeDocument ? activeDocument.name : 'New Chat'}
           </h2>
         </div>
@@ -376,7 +371,7 @@ function App() {
       {/* Messages container */}
       <div 
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto p-4 bg-blue-50"
+        className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900"
       >
         <div className="max-w-3xl mx-auto w-full space-y-4">
           {messages.map((message, index) => (
@@ -388,13 +383,13 @@ function App() {
             </div>
           ))}
           {isLoading && (
-            <div className="flex items-center space-x-2 p-3 bg-white rounded-lg shadow-sm">
+            <div className="flex items-center space-x-2 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
               <div className="typing-indicator">
-                <div className="typing-dot bg-blue-400"></div>
-                <div className="typing-dot bg-blue-400"></div>
-                <div className="typing-dot bg-blue-400"></div>
+                <div className="typing-dot"></div>
+                <div className="typing-dot"></div>
+                <div className="typing-dot"></div>
               </div>
-              <span className="text-sm text-gray-600">Thinking...</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">Thinking...</span>
             </div>
           )}
           <div ref={messagesEndRef} />
@@ -402,15 +397,15 @@ function App() {
       </div>
       
       {/* Input area */}
-      <div className="border-t border-blue-200 bg-blue-100 p-4 shadow-inner">
+      <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
         <div className="max-w-3xl mx-auto">
           {uploadStatus && (
             <div className={`mb-4 p-3 rounded-lg ${
               uploadStatus.success === true 
-                ? 'bg-green-100 text-green-800 border border-green-200' 
+                ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200' 
                 : uploadStatus.success === false 
-                  ? 'bg-red-100 text-red-800 border border-red-200' 
-                  : 'bg-blue-100 text-blue-800 border border-blue-200'
+                  ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200' 
+                  : 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200'
             }`}>
               <div className="flex items-start">
                 <div className="flex-shrink-0 pt-0.5">
@@ -427,9 +422,9 @@ function App() {
                     {uploadStatus.message}
                   </p>
                   {uploadStatus.progress > 0 && uploadStatus.progress < 100 && (
-                    <div className="mt-1 w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="mt-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                       <div 
-                        className="bg-teal-400 h-1.5 rounded-full transition-all duration-300 ease-out" 
+                        className="bg-blue-600 h-1.5 rounded-full transition-all duration-300 ease-out" 
                         style={{ width: `${uploadStatus.progress}%` }}
                       />
                     </div>
@@ -437,7 +432,7 @@ function App() {
                 </div>
                 <button
                   onClick={() => setUploadStatus(null)}
-                  className="ml-4 -mt-1 -mr-2 p-1 rounded-full text-gray-400 hover:text-gray-500"
+                  className="ml-4 -mt-1 -mr-2 p-1 rounded-full text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
                   aria-label="Dismiss"
                 >
                   <FiX className="w-5 h-5" />
@@ -445,7 +440,7 @@ function App() {
               </div>
             </div>
           )}
-
+          
           <form onSubmit={handleSendMessage} className="relative">
             <div className="relative">
               <textarea
@@ -454,7 +449,7 @@ function App() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message here..."
-                className="w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-2 pr-12 focus:border-blue-400 focus:ring-2 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
+                className="w-full resize-none rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 pr-12 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:focus:border-blue-400 dark:focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
                 rows={1}
                 disabled={isLoading}
               />
@@ -463,7 +458,7 @@ function App() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading || isUploading}
-                  className="p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   title="Attach file"
                 >
                   <FiPaperclip className="w-5 h-5" />
@@ -471,10 +466,10 @@ function App() {
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className={`p-2 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 ${
+                  className={`p-2 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${
                     !input.trim() || isLoading
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all'
+                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white'
                   }`}
                   title="Send message"
                 >
@@ -482,7 +477,7 @@ function App() {
                 </button>
               </div>
             </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+            <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
               <span>Press Ctrl+Enter to send</span>
               <span>{input.length} / 2000</span>
             </div>
@@ -517,20 +512,14 @@ function App() {
   );
 
   return (
-    <div className="flex h-screen bg-blue-50 text-gray-800">
-      {/* App Title */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-500 to-teal-500 text-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
-          <h1 className="text-xl font-bold text-center">IntelliChat</h1>
-        </div>
-      </div>
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Sidebar - Desktop */}
-      <div className={`hidden md:flex md:flex-shrink-0 w-80 bg-white border-r border-gray-200 flex-col h-full ${showDocuments ? 'flex' : 'hidden'}`}>
+      <div className={`hidden md:flex md:flex-shrink-0 w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col h-full ${showDocuments ? 'flex' : 'hidden'}`}>
         {renderDocumentList()}
       </div>
       
       {/* Main content */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden pt-12">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         {renderChatInterface()}
       </div>
       
@@ -538,10 +527,10 @@ function App() {
       {showDocuments && (
         <div className="md:hidden fixed inset-0 z-40">
           <div 
-            className="fixed inset-0 bg-gray-600 bg-opacity-50 transition-opacity"
+            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
             onClick={() => setShowDocuments(false)}
           />
-          <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-white shadow-xl z-50 p-4 overflow-y-auto">
+          <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-white dark:bg-gray-800 shadow-xl z-50 p-4 overflow-y-auto">
             {renderDocumentList()}
           </div>
         </div>
