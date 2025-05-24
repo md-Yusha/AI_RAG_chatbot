@@ -310,6 +310,7 @@ function App() {
               activeDocument?.id === doc.id
                 ? 'bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-400 dark:border-blue-500 shadow-sm'
                 : 'hover:bg-gray-50 dark:hover:bg-gray-800 border-l-4 border-transparent'
+
             }`}
             onClick={() => handleDocumentSelect(doc)}
           >
@@ -350,6 +351,7 @@ function App() {
           >
             <FiMenu className="w-5 h-5" />
           </button>
+
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {activeDocument ? activeDocument.name : 'New Chat'}
           </h2>
@@ -375,8 +377,8 @@ function App() {
       {/* Messages container */}
       <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto p-4 bg-blue-50 dark:bg-gray-950"
-      >
+
+        className="flex-1 overflow-y-auto p-4 bg-blue-50 dark:bg-gray-950">
         <div className="max-w-3xl mx-auto w-full space-y-4">
           {messages.map((message, index) => (
             <div key={`${message.id || index}`} className="message-container">
@@ -385,12 +387,14 @@ function App() {
           ))}
           {isLoading && (
             <div className="flex items-center space-x-2 p-3 bg-white dark:bg-gray-900 rounded-lg shadow-sm">
+
               <div className="typing-indicator">
-                <div className="typing-dot bg-blue-400"></div>
-                <div className="typing-dot bg-blue-400"></div>
-                <div className="typing-dot bg-blue-400"></div>
+                <div className="typing-dot"></div>
+                <div className="typing-dot"></div>
+                <div className="typing-dot"></div>
               </div>
               <span className="text-sm text-gray-600 dark:text-gray-300">Thinking...</span>
+
             </div>
           )}
           <div ref={messagesEndRef} />
@@ -398,6 +402,7 @@ function App() {
       </div>
 
       {/* Input area */}
+
       <div className="border-t border-blue-200 dark:border-gray-800 bg-blue-100 dark:bg-gray-900 p-4 shadow-inner">
         <div className="max-w-3xl mx-auto">
           {uploadStatus && (
@@ -410,6 +415,7 @@ function App() {
                     : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800'
               }`}
             >
+
               <div className="flex items-start">
                 <div className="flex-shrink-0 pt-0.5">
                   {uploadStatus.loading ? (
@@ -426,6 +432,7 @@ function App() {
                     <div className="mt-1 w-full bg-gray-200 dark:bg-gray-800 rounded-full h-1.5">
                       <div
                         className="bg-teal-400 dark:bg-teal-700 h-1.5 rounded-full transition-all duration-300 ease-out"
+
                         style={{ width: `${uploadStatus.progress}%` }}
                       />
                     </div>
@@ -441,7 +448,7 @@ function App() {
               </div>
             </div>
           )}
-
+          
           <form onSubmit={handleSendMessage} className="relative">
             <div className="relative">
               <textarea
@@ -459,7 +466,7 @@ function App() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading || isUploading}
-                  className="p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   title="Attach file"
                 >
                   <FiPaperclip className="w-5 h-5" />
@@ -467,10 +474,10 @@ function App() {
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className={`p-2 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300 ${
+                  className={`p-2 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 ${
                     !input.trim() || isLoading
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all'
+                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white'
                   }`}
                   title="Send message"
                 >
@@ -478,7 +485,7 @@ function App() {
                 </button>
               </div>
             </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+            <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
               <span>Press Ctrl+Enter to send</span>
               <span>{input.length} / 2000</span>
             </div>
@@ -524,19 +531,22 @@ function App() {
       <div
         className={`hidden md:flex md:flex-shrink-0 w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col h-full ${showDocuments ? 'flex' : 'hidden'}`}
       >
+
         {renderDocumentList()}
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden pt-12">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         {renderChatInterface()}
       </div>
 
       {/* Mobile sidebar overlay */}
       {showDocuments && (
         <div className="md:hidden fixed inset-0 z-40">
+
           <div
             className="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-black dark:bg-opacity-70 transition-opacity"
+
             onClick={() => setShowDocuments(false)}
           />
           <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-white dark:bg-gray-800 shadow-xl z-50 p-4 overflow-y-auto">
