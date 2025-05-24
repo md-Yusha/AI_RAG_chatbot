@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useUser, useAuth, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+import { useUser, useAuth, SignedIn, SignedOut, RedirectToSignIn, SignUp } from '@clerk/clerk-react';
 import axios from 'axios';
 import {
   FiSend,
@@ -23,6 +23,9 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import ChatMessage from './components/ChatMessage';
 import FileUpload from './components/FileUpload';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import SignUpPage from './pages/SignUpPage';
 
 // API base URL
 const API_URL = 'http://localhost:8000';
@@ -537,17 +540,15 @@ function ChatInterface() {
     <div className="flex h-screen bg-blue-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
       {/* Header with company name and sign-out */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-500 to-teal-500 text-white shadow-md dark:from-gray-900 dark:to-gray-800">
-        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold">{companyName}'s IntelliChat</h1>
-            <button
-              onClick={handleSignOut}
-              className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <FiLogOut className="mr-1.5 h-4 w-4" />
-              Sign out
-            </button>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 relative">
+          <h1 className="text-xl font-bold text-center">{companyName}'s IntelliChat</h1>
+          <button
+            onClick={handleSignOut}
+            className="absolute right-4 top-1/2 -translate-y-1/2 inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <FiLogOut className="mr-1.5 h-4 w-4" />
+            Sign out
+          </button>
         </div>
       </header>
       {/* Sidebar - Desktop */}
@@ -583,25 +584,31 @@ function ChatInterface() {
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <SignedIn>
-        <ChatInterface />
-      </SignedIn>
-      <SignedOut>
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Welcome to IntelliChat</h1>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">Please sign in to continue</p>
-            <a 
-              href="/sign-in" 
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Sign in
-            </a>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/signup" element={<SignUpPage />} />
+      <Route path="/chat" element={
+        <SignedIn>
+          <ChatInterface />
+        </SignedIn>
+      } />
+      <Route path="/sign-in" element={
+        <SignedOut>
+          <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Welcome to IntelliChat</h1>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">Please sign in to continue</p>
+              <a 
+                href="/sign-in" 
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Sign in
+              </a>
+            </div>
           </div>
-        </div>
-      </SignedOut>
-    </div>
+        </SignedOut>
+      } />
+    </Routes>
   );
 }
 
