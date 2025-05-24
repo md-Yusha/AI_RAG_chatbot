@@ -288,18 +288,18 @@ function App() {
 
   // Render the document list
   const renderDocumentList = () => (
-    <div className="document-list bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
-        <h3 className="text-base font-semibold text-gray-800 flex items-center">
-          <FiFileText className="mr-2 text-blue-500" />
+    <div className="document-list bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100 dark:border-gray-800">
+        <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 flex items-center">
+          <FiFileText className="mr-2 text-blue-500 dark:text-blue-400" />
           Your Documents
         </h3>
         <button
           onClick={() => setShowDocuments(false)}
-          className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+          className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           aria-label="Hide documents"
         >
-          <FiX className="w-4 h-4 text-gray-500" />
+          <FiX className="w-4 h-4 text-gray-500 dark:text-gray-300" />
         </button>
       </div>
       
@@ -309,20 +309,20 @@ function App() {
             key={doc.id}
             className={`document-preview flex items-center p-3 cursor-pointer rounded-lg transition-all duration-200 ${
               activeDocument?.id === doc.id 
-                ? 'bg-blue-50 border-l-4 border-blue-400 shadow-sm' 
-                : 'hover:bg-gray-50 border-l-4 border-transparent'
+                ? 'bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-400 dark:border-blue-500 shadow-sm' 
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800 border-l-4 border-transparent'
             }`}
             onClick={() => handleDocumentSelect(doc)}
           >
             <div className="document-preview-icon mr-3">
-              <FiFileText className="w-5 h-5" />
+              <FiFileText className="w-5 h-5 text-gray-700 dark:text-gray-200" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                 {doc.name}
               </p>
               <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-xs font-medium text-gray-800 dark:text-gray-200 mr-2">
+                <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-800 dark:text-gray-200 mr-2">
                   {doc.type.toUpperCase()}
                 </span>
                 <span>{doc.size}</span>
@@ -342,7 +342,7 @@ function App() {
   const renderChatInterface = () => (
     <div className="flex flex-col h-full">
       {/* Chat header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between">
         <div className="flex items-center">
           <button
             onClick={() => setShowDocuments(true)}
@@ -351,21 +351,21 @@ function App() {
           >
             <FiMenu className="w-5 h-5" />
           </button>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-black">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {activeDocument ? activeDocument.name : 'New Chat'}
           </h2>
         </div>
         <div className="flex items-center space-x-2">
           <button
             onClick={handleClearChat}
-            className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+            className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
             title="New chat"
           >
             <FiMessageSquare className="w-5 h-5" />
           </button>
           <button
             onClick={() => setShowDocuments(!showDocuments)}
-            className="hidden md:flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            className="hidden md:flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
             <FiFileText className="w-4 h-4" />
             <span>Documents</span>
@@ -376,7 +376,7 @@ function App() {
       {/* Messages container */}
       <div 
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto p-4 bg-blue-50"
+        className="flex-1 overflow-y-auto p-4 bg-blue-50 dark:bg-gray-950"
       >
         <div className="max-w-3xl mx-auto w-full space-y-4">
           {messages.map((message, index) => (
@@ -388,13 +388,13 @@ function App() {
             </div>
           ))}
           {isLoading && (
-            <div className="flex items-center space-x-2 p-3 bg-white rounded-lg shadow-sm">
+            <div className="flex items-center space-x-2 p-3 bg-white dark:bg-gray-900 rounded-lg shadow-sm">
               <div className="typing-indicator">
                 <div className="typing-dot bg-blue-400"></div>
                 <div className="typing-dot bg-blue-400"></div>
                 <div className="typing-dot bg-blue-400"></div>
               </div>
-              <span className="text-sm text-gray-600">Thinking...</span>
+              <span className="text-sm text-gray-600 dark:text-gray-300">Thinking...</span>
             </div>
           )}
           <div ref={messagesEndRef} />
@@ -402,15 +402,15 @@ function App() {
       </div>
       
       {/* Input area */}
-      <div className="border-t border-blue-200 bg-blue-100 p-4 shadow-inner">
+      <div className="border-t border-blue-200 dark:border-gray-800 bg-blue-100 dark:bg-gray-900 p-4 shadow-inner">
         <div className="max-w-3xl mx-auto">
           {uploadStatus && (
             <div className={`mb-4 p-3 rounded-lg ${
               uploadStatus.success === true 
-                ? 'bg-green-100 text-green-800 border border-green-200' 
+                ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800' 
                 : uploadStatus.success === false 
-                  ? 'bg-red-100 text-red-800 border border-red-200' 
-                  : 'bg-blue-100 text-blue-800 border border-blue-200'
+                  ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800' 
+                  : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800'
             }`}>
               <div className="flex items-start">
                 <div className="flex-shrink-0 pt-0.5">
@@ -427,9 +427,9 @@ function App() {
                     {uploadStatus.message}
                   </p>
                   {uploadStatus.progress > 0 && uploadStatus.progress < 100 && (
-                    <div className="mt-1 w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="mt-1 w-full bg-gray-200 dark:bg-gray-800 rounded-full h-1.5">
                       <div 
-                        className="bg-teal-400 h-1.5 rounded-full transition-all duration-300 ease-out" 
+                        className="bg-teal-400 dark:bg-teal-700 h-1.5 rounded-full transition-all duration-300 ease-out" 
                         style={{ width: `${uploadStatus.progress}%` }}
                       />
                     </div>
@@ -437,7 +437,7 @@ function App() {
                 </div>
                 <button
                   onClick={() => setUploadStatus(null)}
-                  className="ml-4 -mt-1 -mr-2 p-1 rounded-full text-gray-400 hover:text-gray-500"
+                  className="ml-4 -mt-1 -mr-2 p-1 rounded-full text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
                   aria-label="Dismiss"
                 >
                   <FiX className="w-5 h-5" />
@@ -517,15 +517,15 @@ function App() {
   );
 
   return (
-    <div className="flex h-screen bg-blue-50 text-gray-800">
+    <div className="flex h-screen bg-blue-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
       {/* App Title */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-500 to-teal-500 text-white shadow-md">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-500 to-teal-500 text-white shadow-md dark:from-gray-900 dark:to-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
           <h1 className="text-xl font-bold text-center">IntelliChat</h1>
         </div>
       </div>
       {/* Sidebar - Desktop */}
-      <div className={`hidden md:flex md:flex-shrink-0 w-80 bg-white border-r border-gray-200 flex-col h-full ${showDocuments ? 'flex' : 'hidden'}`}>
+      <div className={`hidden md:flex md:flex-shrink-0 w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col h-full ${showDocuments ? 'flex' : 'hidden'}`}>
         {renderDocumentList()}
       </div>
       
@@ -538,10 +538,10 @@ function App() {
       {showDocuments && (
         <div className="md:hidden fixed inset-0 z-40">
           <div 
-            className="fixed inset-0 bg-gray-600 bg-opacity-50 transition-opacity"
+            className="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-black dark:bg-opacity-70 transition-opacity"
             onClick={() => setShowDocuments(false)}
           />
-          <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-white shadow-xl z-50 p-4 overflow-y-auto">
+          <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-white dark:bg-gray-800 shadow-xl z-50 p-4 overflow-y-auto">
             {renderDocumentList()}
           </div>
         </div>
